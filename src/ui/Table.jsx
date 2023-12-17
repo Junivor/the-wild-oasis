@@ -89,6 +89,7 @@ function Row({ children }) {
         { children }
     </StyledRow>
 }
+
 function Body({ data, render }) {
     return <StyledBody>
         { data.map(render) }

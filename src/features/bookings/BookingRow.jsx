@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { format, isToday } from "date-fns";
+import {format, isToday, parseISO} from "date-fns";
 
 import Tag from "../../ui/Tag";
 import Table from "../../ui/Table";
@@ -7,12 +7,14 @@ import Table from "../../ui/Table";
 import { formatCurrency } from "../../utils/helpers";
 import { formatDistanceFromNow } from "../../utils/helpers";
 import Menus from "../../ui/Menus.jsx";
-import {HiEye, HiTrash} from "react-icons/hi";
+import {HiEye, HiPencil, HiTrash} from "react-icons/hi";
 import {useNavigate} from "react-router-dom";
-import {HiArrowDownOnSquare, HiArrowDownOnSquareStack, HiArrowUpOnSquare} from "react-icons/hi2";
-import {useCheckout} from "../check-in-out/useCheckout.js";
+import {HiArrowDownOnSquare, HiArrowUpOnSquare} from "react-icons/hi2";
 import Modal from "../../ui/Modal.jsx";
 import ConfirmDelete from "../../ui/ConfirmDelete.jsx";
+import {useCheckout} from "../check-in-out/useCheckout.js";
+import EditBookingForm from "./EditBookingForm.jsx";
+import booking from "../../pages/Booking.jsx";
 import {useDeleteBooking} from "./useDeleteBooking.js";
 
 const Cabin = styled.div`
@@ -52,16 +54,39 @@ function BookingRow({
     numGuests,
     totalPrice,
     status,
-    guests: { fullName: guestName, email },
-    cabins: { name: cabinName },
-  },
+    hasBreakfast,
+    extrasPrice,
+    cabinPrice,
+    observations,
+    guests: { id: guestId, fullName: guestName, email },
+    cabins: { id: cabinId, name: cabinName },
+  }
 }) {
     const navigate = useNavigate()
-    const { checkout, isCheckOut } = useCheckout()
-    const { deleteBooking, isDelete } = useDeleteBooking()
+    const { isCheckout, setCheckout } = useCheckout()
+    const { isDeleting, deleteBooking } = useDeleteBooking()
+
+    const bookingToEdit = {
+        id: bookingId,
+        created_at,
+        numNights,
+        numGuests,
+        totalPrice,
+        status,
+        guestId,
+        hasBreakfast,
+        extrasPrice,
+        cabinPrice,
+        cabinId,
+        observations,
+        startDate: format(parseISO(startDate), "yyyy-MM-dd"),
+        endDate: format(parseISO(endDate), "yyyy-MM-dd"),
+    }
+
+
 
   const statusToTagName = {
-    unconfirmed: "blue",
+    "unconfirmed": "blue",
     "checked-in": "green",
     "checked-out": "silver",
   };
@@ -91,6 +116,7 @@ function BookingRow({
       <Tag type={statusToTagName[status]}>{status.replace("-", " ")}</Tag>
 
       <Amount>{formatCurrency(totalPrice)}</Amount>
+
       <Modal>
           <Menus.Menu>
               <Menus.Toggle id={bookingId}/>
@@ -104,19 +130,27 @@ function BookingRow({
                   </Menus.Button>
 
                   {status === "unconfirmed" &&
-                      <Menus.Button
-                          icon={<HiArrowDownOnSquare />}
-                          onClick={() => navigate(`/checkin/${bookingId}`)}
-                      >
-                          Check in
-                      </Menus.Button>
+                      <>
+                          <Modal.Open opens={"edit-booking"}>
+                              <Menus.Button
+                                  icon={<HiPencil />}
+                              >
+                                  Edit
+                              </Menus.Button>
+                          </Modal.Open>
+                          <Menus.Button
+                              icon={<HiArrowDownOnSquare />}
+                              onClick={() => navigate(`/checkin/${bookingId}`)}
+                          >
+                              Check in
+                          </Menus.Button>
+                      </>
                   }
 
                   {status === "checked-in" &&
                       <Menus.Button
                           icon={<HiArrowUpOnSquare />}
-                          onClick={() => checkout(bookingId)}
-                          disable={isCheckOut}
+                          onClick={() => setCheckout(bookingId)}
                       >
                           Check out
                       </Menus.Button>
@@ -130,10 +164,15 @@ function BookingRow({
               </Menus.List>
           </Menus.Menu>
 
+          <Modal.Window name={"edit-booking"}>
+              <EditBookingForm bookingToEdit={bookingToEdit}/>
+          </Modal.Window>
+
           <Modal.Window name={"delete"}>
               <ConfirmDelete
                 resourceName={"booking"}
-                disabled={isDelete}
+                disabled={isDeleting}
+                isDeleting={isDeleting}
                 onConfirm={() => deleteBooking(bookingId)}
               />
           </Modal.Window>

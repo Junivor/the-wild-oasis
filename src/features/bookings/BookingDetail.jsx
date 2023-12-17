@@ -8,15 +8,15 @@ import ButtonGroup from "../../ui/ButtonGroup";
 import Button from "../../ui/Button";
 import ButtonText from "../../ui/ButtonText";
 
-import { useMoveBack } from "../../hooks/useMoveBack";
-import {useBooking} from "./useBooking.js";
-import Spinner from "../../ui/Spinner.jsx";
-import Menus from "../../ui/Menus.jsx";
-import {HiArrowDownOnSquare, HiArrowUpOnSquare} from "react-icons/hi2";
+import {HiArrowUpOnSquare} from "react-icons/hi2";
 import {useNavigate} from "react-router-dom";
-import {useCheckout} from "../check-in-out/useCheckout.js";
 import Modal from "../../ui/Modal.jsx";
 import ConfirmDelete from "../../ui/ConfirmDelete.jsx";
+import SpinnerMini from "../../ui/SpinnerMini.jsx";
+import {useMoveBack} from "../../hooks/useMoveBack.js";
+import {useBooking} from "./useBooking.js";
+import Spinner from "../../ui/Spinner.jsx";
+import {useCheckout} from "../check-in-out/useCheckout.js";
 import {useDeleteBooking} from "./useDeleteBooking.js";
 
 const HeadingGroup = styled.div`
@@ -27,18 +27,16 @@ const HeadingGroup = styled.div`
 
 function BookingDetail() {
     const navigate = useNavigate()
-    const { booking, isLoading } = useBooking()
-    const { checkout, isCheckOut } = useCheckout()
-    const { deleteBooking, isDeleting } = useDeleteBooking()
-
-    const moveBack = useMoveBack();
+    const moveBack = useMoveBack()
+    const { isLoading, booking } = useBooking()
+    const { isDeleting, deleteBooking } = useDeleteBooking()
+    const { isCheckout, setCheckout } = useCheckout()
 
     if (isLoading) return <Spinner />
-
     const {status, id: bookingId} = booking
 
     const statusToTagName = {
-        unconfirmed: "blue",
+        "unconfirmed": "blue",
         "checked-in": "green",
         "checked-out": "silver",
     };
@@ -67,26 +65,31 @@ function BookingDetail() {
                 {status === "checked-in" &&
                     <Button
                         icon={<HiArrowUpOnSquare />}
-                        onClick={() => checkout(bookingId)}
-                        disable={isCheckOut}
+                        onClick={() => setCheckout(bookingId)}
                     >
-                        Check out
+                        {isCheckout ? <SpinnerMini /> : "Check out"}
                     </Button>
                 }
 
                 <Modal>
+                    <Modal.Open opens={"edit"}>
+                        <Button>
+                            Edit booking
+                        </Button>
+                    </Modal.Open>
+
                     <Modal.Open opens={"delete"}>
-                        <Button variations="danger">Delete booking</Button>
+                        <Button variations="danger">
+                            Delete booking
+                        </Button>
                     </Modal.Open>
 
                     <Modal.Window name={"delete"}>
                         <ConfirmDelete
                             resourceName={`booking #${bookingId}`}
+                            isDeleting={isDeleting}
                             disabled={isDeleting}
-                            onConfirm={() => deleteBooking(
-                                bookingId,
-                                { onSettled: () => navigate("/bookings")}
-                            )}
+                            onConfirm={() => deleteBooking(bookingId)}
                         />
                     </Modal.Window>
                 </Modal>

@@ -1,6 +1,5 @@
 import styled from "styled-components";
 import {HiXMark} from "react-icons/hi2";
-import {createPortal} from "react-dom";
 import {cloneElement, createContext, useContext, useState} from "react";
 
 const StyledModal = styled.div`
@@ -85,11 +84,11 @@ function Window({ children, name }) {
                 {
                     cloneElement(
                         children,
-                        { onCloseModal: close }
+                        {onCloseModal: close}
                     )
                 }
                 <Button onClick={close}>
-                    <HiXMark />
+                    <HiXMark/>
                 </Button>
             </StyledModal>
         </>

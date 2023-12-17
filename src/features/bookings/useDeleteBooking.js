@@ -1,24 +1,25 @@
 import {useMutation, useQueryClient} from "@tanstack/react-query";
-import { deleteBooking as deleteBookingApi } from "../../services/apiBookings.js";
 import toast from "react-hot-toast";
 
+import {deleteBooking as deleteBookingApi} from "../../services/apiBookings.js";
+import {useNavigate} from "react-router-dom";
+
 export function useDeleteBooking() {
+    const navigate = useNavigate()
     const queryClient = useQueryClient()
 
     const {
-        mutate: deleteBooking,
-        isPending: isDeleting
+        isPending: isDeleting,
+        mutate: deleteBooking
     } = useMutation({
         mutationFn: deleteBookingApi,
         onSuccess: () => {
-            toast.success("Cabin successfully deleted")
-
-            queryClient.invalidateQueries({
-                queryKey: ["bookings"]
-            })
+            toast.success(`Booking deleted successfully!`)
+            queryClient.invalidateQueries({active: true})
+            navigate("/bookings")
         },
         onError: error => toast.error(error.message)
     })
 
-    return { deleteBooking, isDeleting }
+    return {isDeleting, deleteBooking}
 }

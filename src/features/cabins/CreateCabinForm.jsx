@@ -6,65 +6,40 @@ import Button from "../../ui/Button";
 import FileInput from "../../ui/FileInput";
 import Textarea from "../../ui/Textarea";
 import FormRow from "../../ui/FormRow.jsx";
-
+import SpinnerMini from "../../ui/SpinnerMini.jsx";
 import {useCreateCabin} from "./useCreateCabin.js";
-import {useEditCabin} from "./useEditCabin.js";
 
 
-function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
+function CreateCabinForm({ onCloseModal }) {
     const { isCreating, createCabin } = useCreateCabin()
-    const { isEditing, editCabin } = useEditCabin()
-    const isWorking = isCreating || isEditing
-
-    const {
-        id: editId,
-        ...editValues
-    } = cabinToEdit
-    const isEditSession = Boolean(editId)
-
     const {
         register,
         handleSubmit,
-        reset,
+        formState,
         getValues,
-        formState
-    } = useForm({
-        defaultValues: isEditSession ? editValues : {}
-    })
+        reset
+    } = useForm()
+
     const { errors } = formState
 
     function onSubmit(data) {
-        const image = typeof data.image === "string" ? data.image : data.image[0];
+        createCabin({
+            ...data,
+            image: data.image[0]
+        }, {
+            onSettled: () => {
+                reset()
+                onCloseModal?.()
+            }
+        })
 
-        if (isEditSession)
-            editCabin(
-                { newCabinData: { ...data, image }, id: editId },
-                {
-                    onSuccess: (data) => {
-                        reset();
-                        onCloseModal?.();
-                    },
-                }
-            );
-        else
-            createCabin(
-                { ...data, image: image },
-                {
-                    onSuccess: (data) => {
-                        reset();
-                        onCloseModal?.();
-                    },
-                }
-            );
     }
 
-    function onError(errors) {
-        console.log(errors)
-    }
+
 
   return (
     <Form
-        onSubmit={handleSubmit(onSubmit, onError)}
+        onSubmit={handleSubmit(onSubmit)}
         type={onCloseModal ? "modal" : "regular" }
     >
         <FormRow
@@ -74,7 +49,6 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
             <Input
                 type="text"
                 id="name"
-                disabled={isWorking}
                 {...register("name", {
                     required: "This field is required"
                 })}
@@ -88,7 +62,6 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
             <Input
                 type="number"
                 id="maxCapacity"
-                disabled={isWorking}
                 {...register("maxCapacity", {
                     required: "This field is required"
                 })}
@@ -102,7 +75,6 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
             <Input
                 type="number"
                 id="regularPrice"
-                disabled={isWorking}
                 {...register("regularPrice", {
                     required: "This field is required"
                 })}
@@ -112,20 +84,20 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
         <FormRow
             label={"Discount"}
             error={errors?.discount?.message}
+
         >
             <Input
                 type="number"
                 id="discount"
-                disabled={isWorking}
                 defaultValue={0}
                 {...register("discount", {
                     required: "This field is required",
                     validate: value =>
-                        +value >= +getValues().regularPrice
-                            ? "Discount should be less than regular price"
+                        value >= getValues("regularPrice")
+                            ? "Discount cant be higher than regular price!"
                             : null
-                })}
 
+                })}
             />
         </FormRow>
 
@@ -137,7 +109,6 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
                 type="number"
                 id="description"
                 defaultValue=""
-                disabled={isWorking}
                 {...register("description", {
                     required: "This field is required"
                 })}
@@ -151,11 +122,8 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
             <FileInput
                 id="image"
                 accept="image/*"
-                disabled={isWorking}
                 {...register("image", {
-                    required: isEditSession
-                        ? false
-                        : "This field is required"
+                    required: "This field is required"
                 })}
             />
         </FormRow>
@@ -164,17 +132,15 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
       <FormRow>
         {/* type is an HTML attribute! */}
         <Button
-            variation="secondary"
+            variations="secondary"
             type="reset"
+            disabled={isCreating}
             onClick={() => onCloseModal?.()}
         >
           Cancel
         </Button>
-        <Button disabled={isWorking}>
-            { isEditSession
-                ? "Edit cabin"
-                : "Add cabin"
-            }
+        <Button disabled={isCreating}>
+            { isCreating ? <SpinnerMini /> : "Add cabin" }
         </Button>
       </FormRow>
     </Form>

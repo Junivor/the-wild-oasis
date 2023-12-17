@@ -1,17 +1,19 @@
 import Button from "../../ui/Button";
 import {useCheckout} from "./useCheckout.js";
+import Spinner from "../../ui/Spinner.jsx";
+import SpinnerMini from "../../ui/SpinnerMini.jsx";
 
 function CheckoutButton({ bookingId }) {
-    const { checkout, isCheckout } = useCheckout()
-
+  const { isCheckout, setCheckout } = useCheckout()
+  console.log(isCheckout)
   return (
     <Button
         variations="primary"
         sizes="small"
-        onClick={() => checkout(bookingId)}
         disabled={isCheckout}
+        onClick={() => setCheckout(bookingId)}
     >
-      Check out
+      {isCheckout ? <SpinnerMini /> : "Check out"}
     </Button>
   );
 }

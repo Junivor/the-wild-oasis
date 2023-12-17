@@ -16,6 +16,7 @@ function BookingTableOperations() {
       />
 
       <SortBy
+        sortField={"sortBy"}
         options={[
           { value: "startDate-desc", label: "Sort by date (recent first)" },
           { value: "startDate-asc", label: "Sort by date (earlier first)" },

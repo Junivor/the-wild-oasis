@@ -20,6 +20,7 @@ import Booking from "./pages/Booking.jsx";
 import Checkin from "./pages/Checkin.jsx";
 import ProtectedRoute from "./ui/ProtectedRoute.jsx";
 import {DarkModeProvider} from "./context/DarkModeProvider.jsx";
+import Guests from "./pages/Guests.jsx";
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -56,6 +57,7 @@ function App() {
                                 <Route path={"checkin/:bookingId"} element={<Checkin />} />
                                 <Route path={"cabins"} element={<Cabins />} />
                                 <Route path={"users"} element={<Users />} />
+                                <Route path={"guests"} element={<Guests />} />
                                 <Route path={"settings"} element={<Settings />} />
                                 <Route path={"account"} element={<Account />} />
                                 <Route path={"*"} element={<PageNotFound />} />

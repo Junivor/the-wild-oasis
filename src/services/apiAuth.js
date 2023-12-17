@@ -1,5 +1,4 @@
 import supabase, {supabaseUrl} from "./supabase.js";
-import {da} from "date-fns/locale";
 
 export async function signup({ fullName, email, password }) {
     await supabase.auth.signUp({
